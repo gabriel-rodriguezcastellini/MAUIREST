@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PartsService.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using PartsServer.Models;
 using System.Net;
 using System.Text.Json;
 
-namespace PartsService.Controllers;
+namespace PartsServer.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -13,7 +12,7 @@ public class PartsController : BaseController
     [HttpGet]
     public ActionResult Get()
     {
-        var authorized = CheckAuthorization();
+        bool authorized = CheckAuthorization();
         if (!authorized)
         {
             return Unauthorized();
@@ -23,30 +22,26 @@ public class PartsController : BaseController
     }
 
     [HttpGet("{partid}")]
+    [ProducesResponseType<Part>(StatusCodes.Status200OK)]
     public ActionResult Get(string partid)
     {
-        var authorized = CheckAuthorization();
+        bool authorized = CheckAuthorization();
         if (!authorized)
         {
             return Unauthorized();
         }
 
         if (string.IsNullOrEmpty(partid))
-            return this.BadRequest();
+        {
+            return BadRequest();
+        }
 
         partid = partid.ToUpperInvariant();
         Console.WriteLine($"GET /api/parts/{partid}");
-        var userParts = UserParts;
-        var part = userParts.SingleOrDefault(x => x.PartID == partid);
+        List<Part>? userParts = UserParts;
+        Part? part = userParts?.SingleOrDefault(x => x.PartID == partid);
 
-        if (part == null)
-        {
-            return this.NotFound();
-        }
-        else
-        {
-            return this.Ok(part);
-        }
+        return part == null ? NotFound() : Ok(part);
     }
 
     [HttpPut("{partid}")]
@@ -54,7 +49,7 @@ public class PartsController : BaseController
     {
         try
         {
-            var authorized = CheckAuthorization();
+            bool authorized = CheckAuthorization();
             if (!authorized)
             {
                 return new HttpResponseMessage(HttpStatusCode.Unauthorized);
@@ -74,8 +69,8 @@ public class PartsController : BaseController
             Console.WriteLine(JsonSerializer.Serialize(part));
 
 
-            var userParts = UserParts;
-            var existingParts = userParts.SingleOrDefault(x => x.PartID == partid);
+            List<Part>? userParts = UserParts;
+            Part? existingParts = userParts?.SingleOrDefault(x => x.PartID == partid);
             if (existingParts != null)
             {
                 existingParts.Suppliers = part.Suppliers;
@@ -86,26 +81,27 @@ public class PartsController : BaseController
 
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return new HttpResponseMessage(HttpStatusCode.InternalServerError);
         }
     }
 
     [HttpPost]
+    [ProducesResponseType<Part>(StatusCodes.Status200OK)]
     public ActionResult Post([FromBody] Part part)
     {
         try
         {
-            var authorized = CheckAuthorization();
+            bool authorized = CheckAuthorization();
             if (!authorized)
             {
-                return this.Unauthorized();
+                return Unauthorized();
             }
 
             if (!string.IsNullOrWhiteSpace(part.PartID))
             {
-                return this.BadRequest();
+                return BadRequest();
             }
             Console.WriteLine($"POST /api/parts");
             Console.WriteLine(JsonSerializer.Serialize(part));
@@ -114,23 +110,23 @@ public class PartsController : BaseController
 
             if (!ModelState.IsValid)
             {
-                return this.BadRequest();
+                return BadRequest();
             }
 
-            var userParts = UserParts;
+            List<Part>? userParts = UserParts;
 
-            if (userParts.Any(x => x.PartID == part.PartID))
+            if (userParts!.Exists(x => x.PartID == part.PartID))
             {
-                return this.Conflict();
+                return Conflict();
             }
 
             userParts.Add(part);
 
-            return this.Ok(part);
+            return Ok(part);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return this.Problem("Internal server error");
+            return Problem("Internal server error");
         }
     }
 
@@ -140,25 +136,25 @@ public class PartsController : BaseController
     {
         try
         {
-            var authorized = CheckAuthorization();
+            bool authorized = CheckAuthorization();
             if (!authorized)
             {
                 return new HttpResponseMessage(HttpStatusCode.Unauthorized);
             }
 
-            var userParts = UserParts;
-            var existingParts = userParts.SingleOrDefault(x => x.PartID == partid);
+            List<Part>? userParts = UserParts;
+            Part? existingParts = userParts?.SingleOrDefault(x => x.PartID == partid);
 
             if (existingParts == null)
             {
                 return new HttpResponseMessage(HttpStatusCode.NotFound);
             }
             Console.WriteLine($"POST /api/parts/{partid}");
-            userParts.RemoveAll(x => x.PartID == partid);
+            _ = userParts!.RemoveAll(x => x.PartID == partid);
 
             return new HttpResponseMessage(HttpStatusCode.OK);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return new HttpResponseMessage(HttpStatusCode.InternalServerError);
         }

@@ -2,9 +2,6 @@
 
 namespace PartsClient.Data;
 
-public class RefreshMessage : ValueChangedMessage<bool>
+public class RefreshMessage(bool value) : ValueChangedMessage<bool>(value)
 {
-    public RefreshMessage(bool value) : base(value)
-    {
-    }
 }

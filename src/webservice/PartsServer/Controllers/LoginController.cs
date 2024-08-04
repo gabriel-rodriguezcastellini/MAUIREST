@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using PartsService.Models;
+﻿using Microsoft.AspNetCore.Mvc;
+using PartsServer.Models;
 
-namespace PartsService.Controllers;
+namespace PartsServer.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -13,7 +12,7 @@ public class LoginController : BaseController
     {
         try
         {
-            var authorizationToken = Guid.NewGuid().ToString();
+            string authorizationToken = Guid.NewGuid().ToString();
 
             PartsFactory.Initialize(authorizationToken);
 

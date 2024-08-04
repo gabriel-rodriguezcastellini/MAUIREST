@@ -6,77 +6,83 @@ using PartsClient.Data;
 namespace PartsClient.ViewModels;
 
 public partial class AddPartViewModel : ObservableObject
-{ 
+{
     [ObservableProperty]
-    string _partID;
+    private string _partID;
 
     [ObservableProperty]
-    string _partName;
+    private string _partName;
 
     [ObservableProperty]
-    string _suppliers;
+    private string _suppliers;
 
     [ObservableProperty]
-    string _partType;
-    
+    private string _partType;
+
     public AddPartViewModel()
-    {            
+    {
     }
 
     [RelayCommand]
-    async Task SaveData()
+    private async Task SaveData()
     {
         if (string.IsNullOrWhiteSpace(PartID))
+        {
             await InsertPart();
+        }
         else
+        {
             await UpdatePart();
+        }
     }
 
 
     [RelayCommand]
-    async Task InsertPart()
+    private async Task InsertPart()
     {
-        await PartsManager.Add(PartName, Suppliers, PartType);
+        _ = await PartsManager.Add(PartName, Suppliers, PartType);
 
-        WeakReferenceMessenger.Default.Send(new RefreshMessage(true));
+        _ = WeakReferenceMessenger.Default.Send(new RefreshMessage(true));
 
         await Shell.Current.GoToAsync("..");
     }
 
 
     [RelayCommand]
-    async Task UpdatePart()
+    private async Task UpdatePart()
     {
         Part partToSave = new()
         {
             PartID = PartID,
             PartName = PartName,
             PartType = PartType,
-            Suppliers = Suppliers.Split(",").ToList()
+            Suppliers = [.. Suppliers.Split(",")]
         };
 
         await PartsManager.Update(partToSave);
 
-        WeakReferenceMessenger.Default.Send(new RefreshMessage(true));
+        _ = WeakReferenceMessenger.Default.Send(new RefreshMessage(true));
 
         await Shell.Current.GoToAsync("..");
     }
 
     [RelayCommand]
-    async Task DeletePart()
+    private async Task DeletePart()
     {
         if (string.IsNullOrWhiteSpace(PartID))
+        {
             return;
+        }
 
         await PartsManager.Delete(PartID);
 
-        WeakReferenceMessenger.Default.Send(new RefreshMessage(true));
+        _ = WeakReferenceMessenger.Default.Send(new RefreshMessage(true));
 
         await Shell.Current.GoToAsync("..");
     }
 
     [RelayCommand]
-    async Task DoneEditing()
+    private static async Task DoneEditing()
     {
         await Shell.Current.GoToAsync("..");
     }

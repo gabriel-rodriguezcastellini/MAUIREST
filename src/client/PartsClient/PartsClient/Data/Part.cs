@@ -1,4 +1,6 @@
-﻿namespace PartsClient.Data;
+﻿using System.Text;
+
+namespace PartsClient.Data;
 
 [Serializable]
 public class Part
@@ -11,20 +13,19 @@ public class Part
 
     public string PartType { get; set; }
 
-    public List<string> Suppliers { get; set; } = new List<string>();
+    public List<string> Suppliers { get; set; } = [];
     public DateTime PartAvailableDate { get; set; }
 
     public string SupplierString
     {
         get
         {
-            string result = String.Empty;
+            StringBuilder result = new();
             foreach (string supplier in Suppliers)
             {
-                result += $"{supplier}, ";
+                _ = result.Append($"{supplier}, ");
             }
-            result = result.Trim(',', ' ');
-            return result;
+            return result.ToString().Trim(',', ' ');
         }
     }
 }
